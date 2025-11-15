@@ -31,8 +31,7 @@
     }
 
 
-    // =============================================================
-    // checkRegister()
+
     // Wird über onsubmit="return checkRegister();" im <form>-Tag
     // aufgerufen.
     // Ablauf:
@@ -42,7 +41,7 @@
     //       GET  <backendUrl>/user/<username>
     //       204 -> Benutzer existiert -> Fehler
     //       404 -> Benutzer existiert nicht -> OK -> form.submit()
-    // =============================================================
+
     function checkRegister() {
 
         console.log("checkRegister gestartet");  // Debug-Ausgabe in Konsole
@@ -266,15 +265,13 @@
     }
 
 
-    // ===============================================
-    // updateFriendOptions(filterText)
+
     // Füllt die datalist #friend-selector mit <option>-Elementen.
     // - Nimmt allUsers als Basis
     // - filtert:
     //    * aktuellen Nutzer (Tom) raus
     //    * bereits bestehende Freunde raus
     //    * optional nach dem eingegebenen Text
-    // ===============================================
     function updateFriendOptions(filterText) {
         const datalist = document.getElementById("friend-selector"); // Datalist holen
         if (!datalist) {
@@ -307,15 +304,13 @@
     }
 
 
-    // ===============================================
-    // handleAddFriend()
+
     // Wird aufgerufen, wenn der Add-Button geklickt wird.
     // Prüft:
     //  - Name existiert in allUsers
     //  - Name ist nicht Tom
     //  - Name ist noch kein Freund
     // Wenn OK -> POST /friend mit JSON {"username": "<Name>"}
-    // ===============================================
     function handleAddFriend() {
         const input = document.getElementById("friend-request-name"); // Input holen
         if (!input) {
@@ -462,7 +457,7 @@
 // =================================================
 // Teilaufgabe b2 – Freundesliste & Requests aus Backend laden
 // =================================================
-    //
+    
     // Ziel von b2:
     //  - Alle Freundschaften vom Backend holen (GET /friend).
     //  - Einträge mit status "accepted" in der UL #friendsList anzeigen.
@@ -474,11 +469,10 @@
     // WICHTIG:
     //  - Wir ändern keine bestehenden Funktionen, sondern ergänzen nur neue.
 
-    // -----------------------------------------------
+
     // Hilfsfunktion: DOM für Friends und Requests neu aufbauen
     // friendsData: Array von Objekten aus dem Backend
     //   z.B. [{ username: "Jerry", status: "accepted" }, ...]
-    // -----------------------------------------------
     function renderFriendsAndRequests(friendsData) {
         // UL mit den Freunden
         const friendsListElement = document.getElementById("friendsList");
@@ -578,10 +572,9 @@
         });
     }
 
-    // -----------------------------------------------
-    // loadFriends()
+
+
     // Holt die Freundesliste vom Backend und ruft renderFriendsAndRequests() auf.
-    // -----------------------------------------------
     function loadFriends() {
         const xhr = new XMLHttpRequest();
 
@@ -632,5 +625,209 @@
         loadFriends();
     });
 
+// =================================================
+// Teilaufgabe c – Chat-Nachrichten laden und versenden
+// =================================================
+
+    // Ziel von c:
+    //  - Auf der chat.html-Seite alle Nachrichten zwischen dem aktuell
+    //    eingeloggten Nutzer "Tom" und dem ausgewählten Chatpartner laden.
+    //  - Neue Nachrichten per Formular absenden (AJAX, OHNE echten Submit).
+    //  - Überschrift "Chat with <Name>" dynamisch anpassen.
+    //  - Den Chat-Verlauf jede Sekunde neu laden.
+    //
+    // WICHTIG:
+    //  - Zum Laden nutzen wir die Backend-Funktion "List Messages":
+    //        GET  backendUrl + "/message/<user>"
+    //  - Zum Senden nutzen wir "Send Message":
+    //        POST backendUrl + "/message"
+    //        Body: { "message": "<Text>", "to": "<Chatpartner>" }
+    //  - Authentifizierung erfolgt wieder über window.tomToken.
+    //  - Wir fassen den gesamten Chat-Code in eigene Funktionen und
+    //    hängen uns wieder an DOMContentLoaded, aber nur auf chat.html.
+
+
+
+    // Liest den Query-Parameter "friend" aus der aktuellen URL aus.
+    // Beispiel: chat.html?friend=Jerry  ->  liefert "Jerry" zurück.
+    function getChatpartner() {
+        const url = new URL(window.location.href);      // gesamte URL holen
+        const queryParams = url.searchParams;           // Query-Parameter lesen
+        const friendValue = queryParams.get("friend");  // Wert des "friend"-Parameters
+
+        console.log("Teilaufgabe c – Chatpartner aus URL:", friendValue);
+
+        return friendValue; // Chatpartner-Name zurück
+    }
+
+
+    // Baut den Chat-Verlauf (#chatVerlauf) anhand der Serverdaten auf.
+    // Erwartetes Format: [{ msg: "...", from: "...", time: 2 }, ...]
+    function renderMessages(messageArray) {
+        const chatSection = document.getElementById("chatVerlauf");
+
+        // Sicherheitscheck: nur auf chat.html existiert #chatVerlauf
+        if (!chatSection) return;
+
+        // Liste komplett leeren, bevor neue Nachrichten eingetragen werden
+        chatSection.innerHTML = "";
+
+        // Falls der Server keine Liste liefert: abbrechen
+        if (!Array.isArray(messageArray)) {
+            console.error("Unerwartetes Nachrichtenformat:", messageArray);
+            return;
+        }
+
+        // Jede Nachricht einzeln ins DOM schreiben
+        messageArray.forEach(function (msgObj) {
+            if (!msgObj || typeof msgObj.msg !== "string" || typeof msgObj.from !== "string") {
+                return; // Falls etwas kaputt ist, Nachricht überspringen
+            }
+
+            // Ein einzelnes <p> für jede Nachricht
+            const p = document.createElement("p");
+
+            // Nachricht + Name
+            const textSpan = document.createElement("span");
+            textSpan.className = "msg";
+            textSpan.textContent = msgObj.from + ": " + msgObj.msg;
+
+            // Zeitstempel / Nummer der Nachricht
+            const timeSpan = document.createElement("span");
+            timeSpan.className = "timeBadge";
+
+            if (typeof msgObj.time === "number") {
+                const padded = String(msgObj.time).padStart(2, "0");
+                timeSpan.textContent = padded;
+            } else {
+                timeSpan.textContent = "";
+            }
+
+            // Zusammenbauen
+            p.appendChild(textSpan);
+            p.appendChild(timeSpan);
+
+            // Nachricht in den Chatverlauf einfügen
+            chatSection.appendChild(p);
+        });
+
+        console.log("Teilaufgabe c – Chat-Verlauf aktualisiert.");
+    }
+
+
+
+    // Holt vom Server alle Nachrichten zwischen Tom und Chatpartner
+    function loadMessages() {
+        const friendName = getChatpartner();
+        if (!friendName) {
+            console.warn("Kein Chatpartner gefunden – loadMessages abgebrochen.");
+            return;
+        }
+
+        const xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText); // JSON → JS-Objekt
+                        renderMessages(data);                      // ins DOM zeichnen
+                    } catch (e) {
+                        console.error("Fehler beim Parsen:", e);
+                    }
+                } else {
+                    console.error("Fehler beim Laden der Nachrichten. Status:", xhr.status);
+                }
+            }
+        };
+
+        const url = window.backendUrl + "/message/" + encodeURIComponent(friendName);
+        console.log("Teilaufgabe c – Lade Nachrichten von:", url);
+
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader("Authorization", "Bearer " + window.tomToken);
+        xhr.send();
+    }
+
+
+    // Holt Text aus #message und sendet ihn über POST /message
+    function sendMessage() {
+        const input = document.getElementById("message");
+        if (!input) return;
+
+        const text = input.value.trim(); // Inhalt ohne Leerzeichen
+        if (text.length === 0) return;   // leere Nachrichten ignorieren
+
+        const friendName = getChatpartner();
+        if (!friendName) {
+            alert("Fehler: Kein Chatpartner gefunden.");
+            return;
+        }
+
+        const xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 204) {
+                    console.log("Nachricht gesendet.");
+                    input.value = ""; // Eingabefeld leeren
+                    loadMessages();   // sofort neu laden
+                } else {
+                    console.error("Fehler beim Senden:", xhr.status);
+                    alert("Nachricht konnte nicht gesendet werden.");
+                }
+            }
+        };
+
+        const url = window.backendUrl + "/message";
+        console.log("Teilaufgabe c – Sende Nachricht:", text);
+
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.setRequestHeader("Authorization", "Bearer " + window.tomToken);
+
+        const body = JSON.stringify({
+            message: text,
+            to: friendName
+        });
+
+        xhr.send(body);
+    }
+
+
+
+
+    // Initialisierung NUR auf der chat.html
+    // Lädt Nachrichten, setzt Überschrift, aktiviert das Polling,
+    // verhindert echten Submit und nutzt sendMessage()
+    document.addEventListener("DOMContentLoaded", function () {
+        const chatSection = document.getElementById("chatVerlauf");
+        if (!chatSection) return; // nicht auf chat.html → abbrechen
+
+        console.log("Teilaufgabe c – Chat-Seite erkannt. Initialisierung läuft...");
+
+        const friendName = getChatpartner();
+
+        // Überschrift anpassen, wenn vorhanden
+        const heading = document.querySelector("main.app h1");
+        if (heading && friendName) {
+            heading.textContent = "Chat with " + friendName;
+        }
+
+        // Beim Start Nachrichten laden
+        loadMessages();
+
+        // Jede Sekunde neu laden (Polling)
+        window.setInterval(loadMessages, 1000);
+
+        // Formular abfangen und SENDEN per AJAX
+        const chatForm = document.querySelector(".chatForm");
+        if (chatForm) {
+            chatForm.addEventListener("submit", function (event) {
+                event.preventDefault(); // Seite NICHT neu laden!
+                sendMessage();          // Nachricht über AJAX verschicken
+            });
+        }
+    });
 
 

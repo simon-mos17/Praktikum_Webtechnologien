@@ -14,26 +14,29 @@
 
         <h1 class="toCenter">Please sign in</h1>
         <form action="friends.html" method="get" class="toCenter">
-<!-- 🟡 Momentan noch GET. Needs to be adjusted! -->
+            <!-- 🟡 Momentan noch GET. Needs to be adjusted! -->
             <fieldset>
                 <legend>Login</legend>
                     
-                    <!-- Username Eingabe-->
-                    <label for="username">Username</label>
-                    <input id="username" name="username" type="text" placeholder="Username" required>
-                    <br>
+                <!-- Username Eingabe-->
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" placeholder="Username" required>
+                <br>
                     
-                    <!-- Password Eingabe-->
-                    <label for="password">Password</label>
-                    <input id="password" name="password" type="password" placeholder="Password" required>
-                    <br>
+                <!-- Password Eingabe-->
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" placeholder="Password" required>
+                <br>
             </fieldset>
 
-            <!-- Register-Button -->
-            <a href="./register.html"><button type="button">Register</button></a>
+            <!-- Buttons als Gruppe (für Responsive Styling) -->
+            <div class="authFormButtons">
+                <!-- Register-Button -->
+                <a href="./register.html"><button type="button">Register</button></a>
 
-            <!-- Login-Button -->
-            <button type="submit">Login</button>
+                <!-- Login-Button -->
+                <button type="submit">Login</button>
+            </div>
         </form>
     </main>
     

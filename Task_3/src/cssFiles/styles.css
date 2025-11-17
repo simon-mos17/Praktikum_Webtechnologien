@@ -87,7 +87,7 @@ a.danger:focus {
    === Formulare (global) ====
    =========================== */
 
-/* Fieldset – Standard (z.B. Login/Register) */
+/* Fieldset – Standard (z.B. Login/Register/Settings) */
 form fieldset {
   background-color: white;
   border: 1px dashed #c7c7c7;
@@ -155,6 +155,18 @@ section button:focus {
   outline: none;
 }
 
+/* Button-Gruppen bei Login/Register */
+.authFormButtons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.authFormButtons a,
+.authFormButtons button {
+  margin: 0;
+}
+
 /* =========================
    === Friends-Seite =======
    ========================= */
@@ -188,24 +200,41 @@ section button:focus {
   font-size: .9em;
 }
 
-/* Freund hinzufügen – Formular in einer Zeile */
+/* =========================================
+   Friends – Add Friend Formular
+   ========================================= */
+
+/* DESKTOP: Grid -> Input füllt alle freie Breite, Button rechts */
 .friendAddForm {
-  display: flex;
-  justify-content: space-between;
+  display: grid;                           /* GRID-Layout */
+  grid-template-columns: 1fr auto;         /* Input | Button */
+  column-gap: 30px;
   align-items: center;
-  gap: 30px;
   margin-top: 1em;
 }
-.friendAddForm input[type="text"],
-.chatForm input[type="text"] {             /* teilt sich Style mit Chat */
-  flex: 1;
+
+/* Add-Feld: volle Spalte ausnutzen */
+.friendAddForm input[type="text"] {
+  width: 100%;
+  min-width: 0;
   padding: .7em .8em;
   border: 1px solid #c7c7c7;
   border-radius: .3em;
   font-size: 1em;
   box-sizing: border-box;
 }
-.friendAddForm button[type="submit"] {
+
+/* Chat-Input mit ähnlichem Stil (eigenes Flex/Grid in .chatForm) */
+.chatForm input[type="text"] {
+  flex: 1 1 auto;
+  padding: .7em .8em;
+  border: 1px solid #c7c7c7;
+  border-radius: .3em;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.friendAddForm button[type="button"] {
   background-color: grey;
   color: white;
   border: none;
@@ -213,7 +242,43 @@ section button:focus {
   padding: .7em 2em;
   border-radius: .3em;
   cursor: pointer;
-  margin-left: .4em;
+}
+
+/* =========================================
+   Friends – New Requests
+   ========================================= */
+
+/* Liste der Requests */
+.requestsList,
+.app section ol {
+  list-style: decimal;
+  list-style-position: outside;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0 0;
+}
+
+/* Desktop/Tablet: Text + Buttons in EINER Zeile */
+.requestsList li,
+.app section ol li {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Text-Link */
+.requestsList li > a,
+.app section ol li > a {
+  margin-right: 0.3rem;
+}
+
+/* Buttons direkt nach dem Text */
+.requestsList li button,
+.app section ol li button {
+  display: inline-block;
+  margin-right: 0.25rem;
+  min-width: 6rem;
 }
 
 /* ======================
@@ -242,16 +307,16 @@ section button:focus {
   padding: 4px 0;
 }
 .msg       { 
-    flex: 1; 
-    padding-left: 2px; 
+  flex: 1; 
+  padding-left: 2px; 
 }
 
 .timeBadge { 
-    color: #c4c4c4; 
-    padding-right: 2px;
+  color: #c4c4c4; 
+  padding-right: 2px;
 }
 
-/* Nachricht senden – Formular in einer Zeile */
+/* Nachricht senden – Formular in einer Zeile (Desktop/Tablet) */
 .chatForm {
   display: flex;
   justify-content: space-between;
@@ -271,7 +336,7 @@ section button:focus {
 }
 
 /* ==========================================
-   === Settings (Profile Settings Formular)==
+   === Settings (Profile Settings Formular) ==
    ========================================== */
 
 /* übergeordnetes Formular – zentriert alles */
@@ -299,7 +364,7 @@ section button:focus {
 
 /* Base Data – Labels rechtsbündig, Inputs daneben */
 .profileForm fieldset:first-of-type { 
-    text-align: center;
+  text-align: center;
 }
 
 .profileForm fieldset:first-of-type label {
@@ -344,7 +409,7 @@ section button:focus {
   line-height: 1.2;
 }
 .profileForm fieldset:last-of-type input[type="radio"] { 
-    margin: 0;
+  margin: 0;
 }
 
 /* Buttons unten mittig, nebeneinander */
@@ -356,7 +421,7 @@ section button:focus {
 }
 .profileFormButtons button,
 .profileFormButtons a { 
-    margin: 0; 
+  margin: 0; 
 }
 
 /* ====================================
@@ -400,11 +465,9 @@ section button:focus {
   padding-left: 0;
 }
 
-
-
 /* ====================== 
-SECOND Part
-==========================*/
+   SECOND Part
+   ==========================*/
 /* Validierung der Registrierung */
 .input-valid {
   border: 2px solid green;
@@ -412,4 +475,201 @@ SECOND Part
 
 .input-error {
   border: 2px solid red;
+}
+
+/* =========================================
+   Responsive Design für kleine Bildschirme
+   (Handy / Tablet)
+   ========================================= */
+@media (max-width: 900px) {
+
+  body {
+    padding: 0.5rem;
+  }
+
+  /* App-Container über die volle Breite nutzen */
+  .app {
+    margin: 0.5rem auto;
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  main {
+    padding: 0;
+  }
+
+  /* Formulare enger + zentriert */
+  form {
+    gap: 0.5em;
+  }
+
+  /* Alle Fieldsets (Login/Register/Settings) schmaler & mittig */
+  form fieldset {
+    width: 90%;
+    max-width: 500px;
+    padding: 1.5rem !important;
+    margin: 1rem auto 1.5rem;
+    text-align: center !important;
+  }
+
+  /* Labels über den Inputs, mittig */
+  form label,
+  form fieldset label {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  /* Eingabefelder volle Breite */
+  form input[type="text"],
+  form input[type="password"],
+  form input[type="number"],
+  form input[type="email"],
+  form select,
+  form textarea {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  form fieldset input[type="text"],
+  form fieldset input[type="password"] {
+    margin-bottom: 1rem !important;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+
+  /* Legend mittig und mit Abstand */
+  form legend {
+    width: 100%;
+    text-align: center !important;
+    display: block;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Login/Register Buttons: untereinander, zentriert, gleich breit */
+  .authFormButtons {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    align-items: center;
+  }
+
+  .authFormButtons button {
+    width: 75%;
+    max-width: 320px;
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+
+  /* Register-Link so breit wie Buttons */
+  .authFormButtons a {
+    width: 75%;
+    max-width: 320px;
+    display: block;
+  }
+
+  /* Friends- / Chat-Panels etwas luftiger */
+  .friendsPanel,
+  .chatPanel {
+    padding: 0.5rem 0;
+  }
+
+  /* Friend-Add-Form untereinander */
+  .friendAddForm {
+    display: flex;                 /* Grid wird hier überschrieben */
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .friendAddForm button[type="button"],
+  .chatForm button[type="submit"] {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* Profilseite auf Handy: Bild oben, Text darunter */
+  .profileLayout {
+    flex-direction: column;
+    align-items: center;
+  }
+  .profileAvatar {
+    width: 260px;
+    height: 260px;
+  }
+  .profileCard {
+    width: 100%;
+  }
+
+  /* Profile-Buttons auf Mobile untereinander & full width */
+  .profileFormButtons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .profileFormButtons button {
+    width: 100%;
+  }
+
+  /* Chat-Formular: Input über dem Button auf Handy/Tablet */
+  .chatForm {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .chatForm input[type="text"] {
+    width: 100%;
+  }
+
+  .chatForm button[type="submit"] {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* =========================================
+   FINAL FIX: sehr kleine Telefone
+   ========================================= */
+
+@media (max-width: 480px) {
+
+  /* Requests: Text oben, darunter große Buttons (untereinander) */
+  .requestsList li,
+  .app section ol li {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .requestsList li > a,
+  .app section ol li > a {
+    flex-basis: 100%;
+    margin-bottom: 0.3rem;
+    margin-right: 0;
+  }
+
+  .requestsList li button,
+  .app section ol li button {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 0.2rem;
+    margin-right: 0;
+  }
+
+  /* Login/Register Buttons etwas größer/bequemer */
+  .authFormButtons button {
+    padding: 1rem !important;
+    font-size: 1.2rem;
+  }
+
+  .authFormButtons {
+    gap: 1rem !important;
+  }
 }

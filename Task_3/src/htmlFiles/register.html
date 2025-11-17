@@ -14,35 +14,37 @@
         <h1 class="toCenter">Register Yourself</h1>
 
         <form id="registerform" action="./friends.html" method="get" class="toCenter" onsubmit="return checkRegister();">
- <!-- 🟡 Future Adjustment -->
+            <!-- 🟡 Future Adjustment -->
             <fieldset>
                 <legend>Register</legend>
 
-                    <!-- Username -->
-                    <label for="username">Username</label>
-                    <input id="username" name="username" type="text" placeholder="Username" required>
-                    <br>
+                <!-- Username -->
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" placeholder="Username" required>
+                <br>
 
-                    <!-- Password-->
-                    <label for="password">Password</label>
-                    <input id="password" name="password" type="password" placeholder="Password" required>
-                    <br>
+                <!-- Password-->
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" placeholder="Password" required>
+                <br>
 
-                    <!-- Confirm Password -->
-                    <label for="confirm_pw">Confirm Password</label>
-                    <input id="confirm_pw" name="confirm_pw" type="password" placeholder="Confirm Password" required>
-                    <br>
+                <!-- Confirm Password -->
+                <label for="confirm_pw">Confirm Password</label>
+                <input id="confirm_pw" name="confirm_pw" type="password" placeholder="Confirm Password" required>
+                <br>
             </fieldset>
 
-            <!-- Cancel Button -->
-            <a href="./login.html"><button type="button">Cancel</button></a>
+            <!-- Buttons als Gruppe (für Responsive Styling) -->
+            <div class="authFormButtons">
+                <!-- Cancel Button -->
+                <a href="./login.html"><button type="button">Cancel</button></a>
 
-            <!-- Create Account Button -->
-            <button type="submit">Create Account</button>
-            
+                <!-- Create Account Button -->
+                <button type="submit">Create Account</button>
+            </div>
         </form>
     </main>
-        <script src="../jsFiles/backend.js"></script>
-        <script src="../jsFiles/script.js"></script>
+    <script src="../jsFiles/backend.js"></script>
+    <script src="../jsFiles/script.js"></script>
 </body>
 </html>

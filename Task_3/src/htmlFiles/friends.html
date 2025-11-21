@@ -22,12 +22,8 @@
         <!-- Bereich1: Ungeordnete Liste mit aktuellen Freunden -->
         <section class="friendsPanel">
             <ul id="friendsList">
-                <li><a href="./chat.html?friend=Tom">Tom</a><span class="badge">3</span></li>
-                <!-- Mit ?friend=Tom wird beim Aufruf erkennbar, welcher Freund 
-                angeklickt wurde. Nützlich für später JS/PHP -->
-                <li><a href="./chat.html?friend=Marvin">Marvin</a><span class="badge">1</span></li>
-                <li><a href="./chat.html?friend=Tick">Tick</a></li>
-                <li><a href="./chat.html?friend=Trick">Trick</a></li>
+                <!-- Wird komplett von JavaScript (loadFriends/renderFriendsAndRequests)
+                     dynamisch mit den Freunden des aktuell eingeloggten Users befüllt. -->
             </ul>
         </section>
 
@@ -37,14 +33,10 @@
         <section>
             <h2>New Requests</h2>
             <ol class="requestsList">
-                <li>
-                    <a>Friend request from <strong>Denis</strong></a>
-                    <button type="button">Accept</button>
-                    <button type="button" class="danger">Reject</button>
-                </li>
+                <!-- Wird ebenfalls per JavaScript (renderFriendsAndRequests)
+                     mit "requested"-Einträgen befüllt. -->
             </ol>
         </section>
-
 
         <hr>
 

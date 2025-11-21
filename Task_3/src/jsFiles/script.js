@@ -1,4 +1,3 @@
-
 // =================================================
 // Teilaufgabe a – Registrierung mit Validierung
 // Lokale Checks + Server-Check "User Exists" (AJAX)
@@ -16,12 +15,27 @@
 
 
 
+
+// Globale Variable, um sich zu merken, welche Freunde aktuell in der Liste stehen.
+// Diese wird später sowohl in Teil b1 (Freunde hinzufügen) als auch in Teil b2
+// (Freunde aus dem Backend laden) benutzt.
+let currentFriends = [];  // Array mit Strings, z.B. ["Jerry", "Spike", ...]
+
+
+
+// Globale Variable, in der alle Nutzer-Namen vom Backend (List Users) gespeichert werden.
+// Wird in b1 für die Vorschlagsliste verwendet.
+let allUsers = []; // z.B. ["Tom", "Jerry", "Spike", "Tyke", ...]
+
+
+
+
+
     // Markiert ein Eingabefeld als korrekt (grüner Rahmen).
     function markValid(inputElement) {
         inputElement.classList.remove("input-error"); // rote Umrandung entfernen
         inputElement.classList.add("input-valid");    // grüne Umrandung hinzufügen
     }
-
 
 
     // Markiert ein Eingabefeld als fehlerhaft (roter Rahmen).
@@ -36,12 +50,10 @@
     // aufgerufen.
     // Ablauf:
     // 1) Lokale Prüfungen (Länge, Wiederholung)
-    // 2) Wenn lokal Fehler -> false (Formular wird NICHT gesendet)
-    // 3) Wenn lokal alles OK -> AJAX "User Exists":
-    //       GET  <backendUrl>/user/<username>
-    //       204 -> Benutzer existiert -> Fehler
-    //       404 -> Benutzer existiert nicht -> OK -> form.submit()
-
+    // 2) Wenn lokal Fehler -> false (Formular wird NICHT abgesendet)
+    // 3) Wenn lokal OK -> AJAX-Request "User Exists"
+    // 4) Wenn Username existiert (204) -> Fehlermeldung (Username rot markieren)
+    // 5) Wenn Username NICHT existiert (404) -> jetzt REGISTRIEREN und danach LOGIN
     function checkRegister() {
 
         console.log("checkRegister gestartet");  // Debug-Ausgabe in Konsole
@@ -70,7 +82,7 @@
         if (username.length < 3) {
             // Regel verletzt -> Feld rot markieren
             markInvalid(usernameInput);
-            allValid = false; // mindestens EIN Fehler -> später nicht senden
+            allValid = false;
         } else {
             // Regel erfüllt -> Feld grün markieren
             markValid(usernameInput);
@@ -88,11 +100,9 @@
         }
 
 
-        // =========================================================
-        // 3) Passwort-Wiederholung muss exakt IDENTISCH sein
-        //    confirm.length === 0 verhindert, dass ein leeres Feld
-        //    als "richtig" durchgeht.
-    // =========================================================
+        // ================================================
+        // 3) Passwort-Wiederholung muss exakt übereinstimmen
+        // ================================================
         if (confirm !== password || confirm.length === 0) {
             markInvalid(confirmInput);
             allValid = false;
@@ -112,7 +122,7 @@
         }
 
 
-        // ===================================================
+        // ==================================================
         // 4) SERVER-TEIL: Gibt es den User? (AJAX-Teil)
         // Jetzt prüfen wir, ob der Username schon verwendet wird.
         // Dazu nutzen wir window.backendUrl aus backend.js:
@@ -128,44 +138,70 @@
             1 = geöffnet
             2 = Header erhalten
             3 = lädt Daten
-            4 = ***Antwort komplett da***
+            4 = fertig
 
-            HTTP-Status (xhr.status) für User Exists:
-            204 = Benutzer EXISTIERT
-            404 = Benutzer EXISTIERT NICHT
+            HTTP-Statuscodes (hier wichtig):
+            200 = OK       (Antwort mit Inhalt)
+            204 = NoContent (Antwort ohne Inhalt, aber erfolgreich)
+            400 = Bad Request
+            404 = Not Found
         */
 
-        // Neues XMLHttpRequest-Objekt erzeugen
-        const xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest(); // Neues XMLHttpRequest-Objekt erzeugen
 
-        // Reaktion auf die Server-Antwort definieren
         xhr.onreadystatechange = function () {
-            // 4 = Request fertig, Antwort ist komplett da
+            // WICHTIG: Wir interessieren uns für den Moment, wenn die Antwort
+            // vollständig eingetroffen ist:
             if (xhr.readyState === 4) {
+                console.log("Antwort vom User-Exists-Check erhalten. Status:", xhr.status);
 
-                // 204 -> Username existiert bereits -> Fehler
+                // Benutzer existiert bereits -> Fehler
                 if (xhr.status === 204) {
-                    markInvalid(usernameInput); // Feld rot
-                    alert("Dieser Benutzername wird bereits verwendet. Bitte einen anderen Namen wählen.");
+                    markInvalid(usernameInput);
+                    alert("Username ist bereits vergeben. Bitte anderen Namen wählen.");
+
                     console.log("Server: Username existiert bereits (204).");
-                    // Kein form.submit() -> Formular bleibt auf Register-Seite
                 }
 
-                // 404 -> Username existiert NICHT -> OK
+                // Benutzer existiert NICHT -> Username ist frei
+                // (404 = Not Found -> User nicht gefunden -> OK)
                 else if (xhr.status === 404) {
                     markValid(usernameInput);   // zur Sicherheit grün setzen
-                    console.log("Server: Username ist frei (404). Formular wird jetzt abgesendet.");
+                    console.log("Server: Username ist frei (404). Starte Registrierung über /register.");
 
-                    // WICHTIG:
-                    // Wir schicken das Formular jetzt MANUELL ab.
-                    // Dadurch wird die Seite zu friends.html weitergeleitet.
-                    form.submit();
+                    // Jetzt tatsächliche Registrierung beim Backend durchführen
+                    const registerXhr = new XMLHttpRequest();
+
+                    registerXhr.onreadystatechange = function () {
+                        if (registerXhr.readyState === 4) {
+                            if (registerXhr.status === 201 || registerXhr.status === 204) {
+                                console.log("Registrierung erfolgreich. Melde Benutzer nun an.");
+
+                                // Nach erfolgreicher Registrierung direkt einloggen
+                                handleLogin(form);
+                            } else {
+                                console.error("Fehler bei der Registrierung. Status:", registerXhr.status, registerXhr.responseText);
+                                alert("Fehler bei der Registrierung (Status " + registerXhr.status + "). Bitte später erneut versuchen.");
+                                markInvalid(usernameInput);
+                            }
+                        }
+                    };
+
+                    const registerUrl = window.backendUrl + "/register";
+                    console.log("Sende Register-Request an:", registerUrl);
+
+                    registerXhr.open("POST", registerUrl, true);
+                    registerXhr.setRequestHeader("Content-type", "application/json");
+                    registerXhr.send(JSON.stringify({
+                        username: username,
+                        password: password
+                    }));
                 }
 
                 // Andere Statuscodes -> allgemeiner Fehler (z.B. Serverproblem)
                 else {
                     markInvalid(usernameInput);
-                    alert("Fehler beim Prüfen des Benutzernamens (Status " + xhr.status + "). Bitte später nochmal versuchen.");
+                    alert("Fehler beim Prüfen des Benutzernamens... (Status " + xhr.status + "). Bitte später nochmal versuchen.");
                     console.error("Unerwarteter Status-Code beim User-Check:", xhr.status);
                 }
             }
@@ -188,67 +224,223 @@
         // WICHTIG:
         // Wir geben hier IMMER false zurück,
         // weil wir das Formular NUR in xhr.onreadystatechange
-        // (also nach der Server-Antwort) mit form.submit() absenden.
+        // (also nach der Server-Antwort) weiterverarbeiten.
         return false;
     }
 
 // =================================================
+// Login – echten User einloggen und Token holen
+// =================================================
+
+// Führt den AJAX-Login aus und wechselt bei Erfolg auf friends.html
+function handleLogin(formElement) {
+    const usernameInput = formElement.querySelector("#username");
+    const passwordInput = formElement.querySelector("#password");
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (username.length === 0 || password.length === 0) {
+        alert("Bitte Username und Passwort eingeben.");
+        return;
+    }
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                // Erwartet: JSON mit einem Token-Feld, z.B. { "token": "abc..." }
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    if (data && data.token) {
+                        // User + Token global & im Storage speichern
+                        setCurrentUser(username, data.token);
+                        console.log("Login erfolgreich als:", username);
+
+                        // Weiter zur Friends-Seite
+                        window.location.href = "./friends.html";
+                    } else {
+                        alert("Login-Antwort enthält kein Token.");
+                        console.error("Login-Antwort ohne Token:", data);
+                    }
+                } catch (e) {
+                    console.error("Fehler beim Parsen der Login-Antwort:", e);
+                    alert("Fehler beim Verarbeiten der Login-Antwort.");
+                }
+            } else {
+                console.error("Login fehlgeschlagen. Status:", xhr.status, xhr.responseText);
+                alert("Login fehlgeschlagen (Status " + xhr.status + "). Bitte Daten prüfen.");
+            }
+        }
+    };
+
+    const url = window.backendUrl + "/login";
+    console.log("Sende Login-Request an:", url, "für User:", username);
+
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-type", "application/json");
+
+    const body = JSON.stringify({
+        username: username,
+        password: password
+    });
+
+    xhr.send(body);
+}
+
+// DOM-Initialisierung speziell für die Login-Seite
+document.addEventListener("DOMContentLoaded", function () {
+    // wir erkennen die Login-Seite eindeutig am Formular mit der ID "loginform"
+    const loginForm = document.getElementById("loginform");
+
+    if (!loginForm) {
+        return; // wir sind NICHT auf login.html
+    }
+
+    console.log("Login-Seite erkannt. Login-Handler wird registriert.");
+
+    loginForm.addEventListener("submit", function (event) {
+        event.preventDefault();          // normales Absenden verhindern
+        handleLogin(loginForm);          // stattdessen AJAX-Login
+    });
+});
+
+
+
+
+// =================================================
+// User/Token-Verwaltung via localStorage
+// =================================================
+
+// Setzt aktuellen Benutzer + Token und speichert sie im localStorage
+function setCurrentUser(username, token) {
+    window.currentUserName = username;
+    window.currentToken = token;
+
+    try {
+        localStorage.setItem("chat_username", username);
+        localStorage.setItem("chat_token", token);
+    } catch (e) {
+        console.warn("Konnte Userdaten nicht im localStorage speichern:", e);
+    }
+}
+
+// Liest aktuellen Benutzer + Token aus localStorage oder markiert als "nicht eingeloggt"
+function loadCurrentUserFromStorage() {
+    let username = null;
+    let token = null;
+
+    try {
+        username = localStorage.getItem("chat_username");
+        token = localStorage.getItem("chat_token");
+    } catch (e) {
+        console.warn("Konnte localStorage nicht lesen:", e);
+    }
+
+    if (username && token) {
+        // Es existieren bereits gespeicherte Login-Daten
+        window.currentUserName = username;
+        window.currentToken = token;
+        console.log("Aktueller User aus Storage:", username);
+    } else {
+        // Kein gespeicherter Login -> Nutzer ist nicht eingeloggt
+        window.currentUserName = null;
+        window.currentToken = null;
+        console.log("Kein User im Storage – bitte zuerst einloggen.");
+    }
+
+}
+
+// Beim Laden von script.js einmal initial aufrufen
+loadCurrentUserFromStorage();
+
+// Hilfsfunktion, falls wir nur den Namen brauchen
+function getCurrentUserName() {
+    return window.currentUserName || "Tom";
+}
+
+
+
+// =================================================
 // Teilaufgabe b1 – Hinzufügen neuer Freunde
 // =================================================
+    //
     // Ziel:
     // - Vom Backend alle Nutzer holen (List Users).
     // - Vorschläge in einer datalist anzeigen.
     // - Beim Tippen wird gefiltert.
     // - Klick auf "Add" sendet eine Freundschaftsanfrage (POST /friend).
     // - Es dürfen NICHT auswählbar sein:
-    //      * der aktuell eingeloggte Nutzer (Tom)
+    //      * der aktuell eingeloggte Nutzer
     //      * bereits bestehende Freunde aus der Liste
     //
     // Wir gehen davon aus:
-    // - Du bist als "Tom" eingeloggt (wir nutzen window.tomToken).
-    // - backendUrl und tomToken kommen aus backend.js.
+    // - Du bist eingeloggt (Token in window.currentToken).
+    // - Die Friends-Seite enthält:
+    //      * UL mit id="friendsList"
+    //      * OL mit Requests
+    //      * Formular mit class="friendAddForm"
+    //      * Input mit id="friend-request-name"
+    //      * datalist mit id="friend-selector"
 
-
-    // Globale Variablen nur für die Friends-Seite
-    let allUsers = [];          // Hier speichert man später alle Usernamen, die das Backend zurückgibt (z.B. ["Tom", "Jerry"])
-    let currentFriends = [];    // Liste der Freunde aus der HTML-Liste
-    const currentUserName = "Tom"; // Aktueller Nutzer (für dein Praktikum reicht das so)
-
-
-
-    // liest aktuelle Freunde aus dem DOM
-    // Schaut in die UL #friendsList und sammelt die Link-Texte.
+    // Liest die Friends-Liste aus dem DOM (friends.html) in das Array currentFriends ein.
+    // Dadurch wissen wir, wen wir NICHT mehr als Vorschlag anbieten dürfen.
     function readFriendsFromDom() {
-        const friendsListElement = document.getElementById("friendsList");
-        if (!friendsListElement) {
+        const listElement = document.getElementById("friendsList");
+
+        // Falls es diese UL nicht gibt (z.B. auf einer anderen Seite) -> abbrechen
+        if (!listElement) {
+            console.warn("Friends-UL #friendsList nicht gefunden – vermutlich nicht auf friends.html?");
+            currentFriends = [];
             return;
         }
 
-        const friendLinks = friendsListElement.querySelectorAll("li a"); // Sucht alle <a> Tags in den <li> der Liste, also z.b Tom, Marvin, Tick, Trick etc.
-        currentFriends = Array.from(friendLinks).map(link => link.textContent.trim()); // → Wandelt die NodeList in ein richtiges Array um und extrahiert den sichtbaren Text (den Namen des Freundes).
+        // Alle <li>-Elemente in der UL holen
+        const liElements = listElement.querySelectorAll("li");
 
-        console.log("Aktuelle Freunde aus DOM:", currentFriends); // Das Ergebnis speicherst du in currentFriends.
-        //  Beispiel: ["Tom", "Marvin", "Tick", "Trick"]. Du weiß man, welche Freunde schon existieren
+        // currentFriends leeren
+        currentFriends = [];
+
+        liElements.forEach(li => {
+            const link = li.querySelector("a");
+            if (link) {
+                const name = link.textContent.trim();
+                if (name.length > 0) {
+                    currentFriends.push(name);
+                }
+            }
+        });
+
+        console.log("Aktuelle Freunde aus dem DOM:", currentFriends);
     }
 
 
 
-    // lädt alle Nutzer vom Backend (List Users)
-    // GET backendUrl + "/user" mit Tom-Token
+    // Lädt alle Nutzer (List Users) vom Backend und speichert sie in allUsers.
+    // Achtung: Der aktuell eingeloggte Nutzer ist auch dabei und muss später
+    //          aus den Vorschlägen herausgefiltert werden.
     function loadAllUsers() {
-        const xhr = new XMLHttpRequest(); // Erstellt neues AJAX - Objekt
+        const xhr = new XMLHttpRequest();
 
-        xhr.onreadystatechange = function () { // Was passiert wenn sich Zustand des Requests ändert
-            if (xhr.readyState === 4) { // Antwort vom Server ist komplett da
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (Array.isArray(data)) {
+                            // Wir erwarten ein Array von Strings, z.B. ["Tom", "Jerry", ...]
+                            allUsers = data.slice(); // Kopie des Arrays
+                            console.log("Nutzerliste vom Backend:", allUsers);
 
-                if (xhr.status === 200) { // Alles OK
-                    // Antwort ist ein JSON-Array von Strings, z.B. ["Tom", "Jerry"]
-                    const data = JSON.parse(xhr.responseText);
-                    allUsers = data; // Speicjer Liste ab, damit andere Funktionen sie benutzen können
-                    console.log("Alle Nutzer vom Backend:", allUsers);
-
-                    // Nach dem Laden der Nutzer Vorschlagsliste initial aktualisieren
-                    updateFriendOptions(""); // Datalist sofort befüllen
+                            // Nach dem Laden einmal die Vorschläge aktualisieren
+                            updateFriendOptions("");
+                        } else {
+                            console.error("Unerwartetes Format der Nutzerliste:", data);
+                        }
+                    } catch (e) {
+                        console.error("Fehler beim Parsen der Nutzerliste:", e);
+                    }
                 } else {
                     console.error("Fehler beim Laden der Nutzerliste. Status:", xhr.status);
                 }
@@ -258,39 +450,43 @@
         const url = window.backendUrl + "/user"; // Baut die URL, z. B. https://online-lectures-cs.thi.de/chat/DEINE_ID/user.
         console.log("Lade Nutzerliste von:", url);
 
-        xhr.open("GET", url, true); // bereitet einen GET-Request vor.
-        // Token für Tom (Authentifizierung)
-        xhr.setRequestHeader("Authorization", "Bearer " + window.tomToken); // Hängt dein Token für Tom an (Authentifizierung).
+        xhr.open("GET", url, true);
+        // Token für aktuellen User (Authentifizierung)
+        xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
         xhr.send(); // Schickt die Anfrage los
     }
 
 
 
     // Füllt die datalist #friend-selector mit <option>-Elementen.
-    // - Nimmt allUsers als Basis
-    // - filtert:
-    //    * aktuellen Nutzer (Tom) raus
-    //    * bereits bestehende Freunde raus
-    //    * optional nach dem eingegebenen Text
+    // - Nimmt allUsers als Basis.
+    // - Filtert:
+    //      * den aktuellen User selbst
+    //      * alle, die schon in der Freundesliste stehen
+    //      * optional nach dem aktuellen Eingabetext (Substring)
     function updateFriendOptions(filterText) {
-        const datalist = document.getElementById("friend-selector"); // Datalist holen
+        const datalist = document.getElementById("friend-selector");
+
         if (!datalist) {
+            console.warn("datalist #friend-selector nicht gefunden.");
             return;
         }
 
-        datalist.innerHTML = ""; // Alle alten Vorschläge werden gelöscht (Liste aufräumen).
+        // Bestehende Optionen entfernen
+        datalist.innerHTML = "";
 
+        const currentUserName = getCurrentUserName();
         const filter = filterText.trim().toLowerCase(); // Der aktuelle Eingabetext aus dem Input wird kleingeschrieben, Leerzeichen entfernt.
 
         // Nutzer filtern: nicht currentUser, nicht bereits Freund
         let candidates = allUsers.filter(name => // Start mit allen Nutzern, dann
-            name !== currentUserName && !currentFriends.includes(name) // aktueller User (Tom) wird entfernt + alle, die schon in der Freundesliste stehen, werden entfernt.
+            name !== currentUserName && !currentFriends.includes(name) // alle, die schon in der Freundesliste stehen, werden entfernt.
         );
 
         // Wenn etwas im Input steht -> zusätzlich nach Text filtern
-        if (filter.length > 0) { // enn der Nutzer etwas getippt hat (filter.length > 0): nochmal zusätzlich nach Text filtern
+        if (filter.length > 0) { // Wenn der Nutzer etwas getippt hat (filter.length > 0): nochmal zusätzlich nach Text filtern
             candidates = candidates.filter(name => 
-                name.toLowerCase().includes(filter)); // Für jeden verbleibenden Namen erzeugst du ein <option> -> option.value = name -> hängt das an die datalist an.
+                name.toLowerCase().includes(filter)); // Für jeden Namen prüfen: kommt der Filtertext drin vor?
         }
 
         // Für jeden Kandidaten ein <option>-Element erzeugen
@@ -308,9 +504,9 @@
     // Wird aufgerufen, wenn der Add-Button geklickt wird.
     // Prüft:
     //  - Name existiert in allUsers
-    //  - Name ist nicht Tom
-    //  - Name ist noch kein Freund
-    // Wenn OK -> POST /friend mit JSON {"username": "<Name>"}
+    //  - Name ist nicht der aktuelle User
+    //  - Name ist noch nicht in currentFriends
+    //  - Wenn alles ok -> Freundschaftsanfrage (POST /friend)
     function handleAddFriend() {
         const input = document.getElementById("friend-request-name"); // Input holen
         if (!input) {
@@ -319,7 +515,7 @@
 
         const name = input.value.trim(); // eingegebener Text, zugeschnitten
 
-        // Grund-Checks (lokal) 4 insgesmat
+        // Grund-Checks (lokal)
         let valid = true;
 
             // 1) Darf nicht leer sein
@@ -327,26 +523,26 @@
                 valid = false;
             }
 
-            // 2) Muss in der Liste aller Nutzer vorkommen
-            if (!allUsers.includes(name)) {
-                valid = false;
-            }
-
-            // 3) Darf nicht der aktuelle Nutzer sein
+            // 2) Darf nicht der aktuell eingeloggte Nutzer sein
+            const currentUserName = getCurrentUserName();
             if (name === currentUserName) {
                 valid = false;
             }
 
-            // 4) Darf nicht bereits Freund sein
+            // 3) Darf nicht bereits in der Freundesliste sein
             if (currentFriends.includes(name)) {
                 valid = false;
             }
 
-        if (!valid) { // Falls irgendwas nicht stimmt
-            // Visuelles Feedback: Eingabefeld rot einfärben
+            // 4) Muss in allUsers vorkommen (Server kennt den Namen)
+            if (!allUsers.includes(name)) {
+                valid = false;
+            }
+
+        if (!valid) {
+            alert("Ungültiger Freundesname. Bitte einen gültigen Nutzer wählen, " +
+                  "der noch nicht dein Freund ist und nicht du selbst bist.");
             markInvalid(input);
-            alert("Ungültiger Freundesname. Entweder existiert der Nutzer nicht, " +
-                "ist bereits dein Freund oder du bist es selbst.");
             return;
         }
 
@@ -361,7 +557,7 @@
         //   Method: POST
         //   Header:
         //      Content-Type: application/json
-        //      Authorization: Bearer <Tom-Token>
+        //      Authorization: Bearer <Token>
         //   Body (JSON):
         //      { "username": "<ausgewählter Name>" }
         //
@@ -374,6 +570,7 @@
         /*
             HTTP-Statuscodes (hier wichtig):
             200 = OK      (Antwort mit Inhalt)
+            201 = Created (Ressource angelegt)
             204 = No Content (Erfolg ohne Inhalt, hier: Freundschaftsanfrage angelegt)
             400 = Bad Request (fehlerhafte Anfrage)
             401 = Unauthorized (Token fehlt/falsch)
@@ -409,7 +606,7 @@
 
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-type", "application/json");
-        xhr.setRequestHeader("Authorization", "Bearer " + window.tomToken);
+        xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
 
         const body = { // Das JSON Objekt
             username: name
@@ -538,7 +735,7 @@
         // Nachdem wir die Friend-Liste neu gebaut haben, aktualisieren wir
         // currentFriends (aus b1), damit die Add-Freund-Funktion immer weiß,
         // wer aktuell schon Freund ist.
-        readFriendsFromDom();
+        currentFriends = acceptedFriends.map(function (f) { return f.username; });
 
         // ===== Requests-Liste (requested) =====
         requestedFriends.forEach(function (friend) {
@@ -597,8 +794,8 @@
         console.log("b2: Lade Freundesliste von:", url);
 
         xhr.open("GET", url, true);
-        // Token für Tom (Authentifizierung)
-        xhr.setRequestHeader("Authorization", "Bearer " + window.tomToken);
+        // wieder mit Token des aktuellen Users
+        xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
         xhr.send();
     }
 
@@ -631,7 +828,7 @@
 
     // Ziel von c:
     //  - Auf der chat.html-Seite alle Nachrichten zwischen dem aktuell
-    //    eingeloggten Nutzer "Tom" und dem ausgewählten Chatpartner laden.
+    //    eingeloggten Nutzer und dem ausgewählten Chatpartner laden.
     //  - Neue Nachrichten per Formular absenden (AJAX, OHNE echten Submit).
     //  - Überschrift "Chat with <Name>" dynamisch anpassen.
     //  - Den Chat-Verlauf jede Sekunde neu laden.
@@ -642,7 +839,7 @@
     //  - Zum Senden nutzen wir "Send Message":
     //        POST backendUrl + "/message"
     //        Body: { "message": "<Text>", "to": "<Chatpartner>" }
-    //  - Authentifizierung erfolgt wieder über window.tomToken.
+    //  - Authentifizierung erfolgt wieder über window.currentToken.
     //  - Wir fassen den gesamten Chat-Code in eigene Funktionen und
     //    hängen uns wieder an DOMContentLoaded, aber nur auf chat.html.
 
@@ -657,12 +854,13 @@
 
         console.log("Teilaufgabe c – Chatpartner aus URL:", friendValue);
 
-        return friendValue; // Chatpartner-Name zurück
+        return friendValue; // Chatpartner-Name zurückgeben (oder null)
     }
 
 
-    // Baut den Chat-Verlauf (#chatVerlauf) anhand der Serverdaten auf.
-    // Erwartetes Format: [{ msg: "...", from: "...", time: 2 }, ...]
+
+    // Zeichnet eine Liste von Nachrichten in den DOM-Bereich #chatVerlauf.
+    // messageArray: Array von Objekten mit { from, to, msg, time, ... }
     function renderMessages(messageArray) {
         const chatSection = document.getElementById("chatVerlauf");
 
@@ -687,7 +885,7 @@
             // Ein einzelnes <p> für jede Nachricht
             const p = document.createElement("p");
 
-            // Nachricht + Name
+            // Textspan mit "Absender: Nachricht"
             const textSpan = document.createElement("span");
             textSpan.className = "msg";
             textSpan.textContent = msgObj.from + ": " + msgObj.msg;
@@ -707,16 +905,14 @@
             p.appendChild(textSpan);
             p.appendChild(timeSpan);
 
-            // Nachricht in den Chatverlauf einfügen
+            // p ins DOM
             chatSection.appendChild(p);
         });
-
-        console.log("Teilaufgabe c – Chat-Verlauf aktualisiert.");
     }
 
 
 
-    // Holt vom Server alle Nachrichten zwischen Tom und Chatpartner
+    // Holt Nachrichten vom Backend (GET /message/<friend>) und ruft renderMessages() auf
     function loadMessages() {
         const friendName = getChatpartner();
         if (!friendName) {
@@ -745,7 +941,7 @@
         console.log("Teilaufgabe c – Lade Nachrichten von:", url);
 
         xhr.open("GET", url, true);
-        xhr.setRequestHeader("Authorization", "Bearer " + window.tomToken);
+        xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
         xhr.send();
     }
 
@@ -784,16 +980,15 @@
 
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-type", "application/json");
-        xhr.setRequestHeader("Authorization", "Bearer " + window.tomToken);
+        xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
 
         const body = JSON.stringify({
-            message: text,
-            to: friendName
+            to: friendName,
+            message: text
         });
 
         xhr.send(body);
     }
-
 
 
 
@@ -824,10 +1019,32 @@
         const chatForm = document.querySelector(".chatForm");
         if (chatForm) {
             chatForm.addEventListener("submit", function (event) {
-                event.preventDefault(); // Seite NICHT neu laden!
-                sendMessage();          // Nachricht über AJAX verschicken
+                event.preventDefault();
+                sendMessage();
             });
         }
     });
 
 
+
+// Helfer zum Logout: Userdaten löschen
+function clearCurrentUser() {
+    try {
+        localStorage.removeItem("chat_username");
+        localStorage.removeItem("chat_token");
+    } catch (e) {
+        console.warn("Konnte localStorage nicht leeren:", e);
+    }
+
+    window.currentUserName = null;
+    window.currentToken = null;
+}
+
+// Logout-Seite erkennen und Userdaten löschen
+document.addEventListener("DOMContentLoaded", function () {
+    // Prüfen, ob wir auf logout.html sind
+    if (window.location.pathname.includes("logout.html")) {
+        console.log("Logout-Seite erkannt. Lösche aktuellen User.");
+        clearCurrentUser();
+    }
+});

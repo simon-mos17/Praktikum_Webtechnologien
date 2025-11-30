@@ -266,5 +266,14 @@ class BackendService{
         }
         return false;
     }
+
+    public function test() {
+    try {
+        return HttpClient::get(join_paths($this->base, "test.json"));
+    } catch(\Exception $e) {
+        error_log($e);
+    }
+    return false;
+    }
 }
 ?>

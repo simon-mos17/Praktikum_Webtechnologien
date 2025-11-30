@@ -7,14 +7,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../cssFiles/styles.css">
+    <link rel="stylesheet" href="cssFiles/styles.css">
 
     <title>Login</title>
 </head>
 <body>
 
     <main class="app">
-        <img src="../images/chat.png" alt="Speech Bubble Icon" width="100" height="100" class="roundIcons">
+        <img src="images/chat.png" alt="Speech Bubble Icon" width="100" height="100" class="roundIcons">
 
         <h1 class="toCenter">Please sign in</h1>
         <!-- Einzige Änderung: id="loginform" -->

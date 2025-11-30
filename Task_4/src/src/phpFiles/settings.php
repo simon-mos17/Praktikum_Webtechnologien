@@ -1,0 +1,79 @@
+<?php
+    require("start.php");
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../cssFiles/styles.css">
+
+    <title>Settings</title>
+</head>
+<body>
+
+    <main class="app">
+    
+        <h1>Profile Settings</h1>
+        
+        <form id="profileSettings" action="./settings.html" method="get" class="profileForm">
+            
+            <!-- Basis Informationen -->
+            <fieldset>
+                <legend>Base Data</legend>
+                
+                <!-- Your Name-->
+                <label for="firstName">First Name</label>
+                <input id="firstName" name="firstName" type="text" placeholder="Your name">
+                <br>
+                
+                <!-- Surname-->
+                <label for="lastName">Last Name</label>
+                <input id="lastName" name="lastName" type="text" placeholder="Your surname">
+                <br>
+
+                <!-- Kaffee oder Tee? Auswahl -->
+                <label for="drink">Coffee or Tea?</label>
+                <select id="drink" name="drink">
+                    <option value="neither">Neither nor</option>
+                    <option value="coffee">Coffee</option>
+                    <option value="tea">Tea</option>
+                    <option value="both">Both</option>
+                </select>
+                <br>
+            </fieldset>
+
+            <!-- Bio -->
+            <fieldset>
+                <legend>Tell Something About You</legend>
+                    <textarea id="bio" name="bio" placeholder="Leave a comment here"></textarea>
+            </fieldset>
+
+            <!-- Chat Einstellungen -->
+            <fieldset>
+                <legend>Prefered Chat Layout</legend>
+
+                <!-- Username and message in one line -->
+                <label>
+                    <input type="radio" id="userMessageOneLine" name="userMessageLine" value="inline">Username and message in one line</label>
+                <br>
+
+                <!-- Username and message in separate lines -->
+                <label>
+                    <input type="radio" id="userMessageSepLine" name="userMessageLine"  value="separated">Username and message in separated lines</label>
+                <br>
+            </fieldset>
+            
+            <div class="profileFormButtons">
+            <!-- Cancel Button -->
+            <a href="./friends.html"><button type="button">Cancel</button></a>
+
+            <!-- Save Button -->
+            <button type="submit">Save</button>
+            </div>
+        </form>
+    </main>
+
+</body>
+</html>

@@ -1,5 +1,24 @@
 <?php
     require("start.php");
+    $error = "";
+
+    if(isset($_SESSION["user"])){
+        header("Location: friends.php");
+        exit;
+    }
+
+    if(!empty($_POST)){
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+
+        if($service->login($username, $password)){
+            $_SESSION["user"] = $username;
+            header("Location: friends.php");
+        } else{
+            $error = "Login fehlgeschlagen. Benutzername oder Passwort falsch.";
+        }
+    }
+
 ?>
 
 <!DOCTYPE html>
@@ -18,7 +37,7 @@
 
         <h1 class="toCenter">Please sign in</h1>
         <!-- Einzige Änderung: id="loginform" -->
-        <form id="loginform" action="friends.html" method="get" class="toCenter">
+        <form id="loginform" action="login.php" method="post" class="toCenter">
             <!-- 🟡 Momentan noch GET. Needs to be adjusted! -->
             <fieldset>
                 <legend>Login</legend>
@@ -37,11 +56,18 @@
             <!-- Buttons als Gruppe (für Responsive Styling) -->
             <div class="authFormButtons">
                 <!-- Register-Button -->
-                <a href="./register.html"><button type="button">Register</button></a>
+                <a href="./register.php"><button type="button">Register</button></a>
 
                 <!-- Login-Button -->
                 <button type="submit">Login</button>
             </div>
+
+            <?php
+            if(!empty($error)){
+                echo "<p style='color:red'><strong>$error</strong></p>";
+            }
+            ?>
+
         </form>
     </main>
     <script src="../jsFiles/backend.js"></script>

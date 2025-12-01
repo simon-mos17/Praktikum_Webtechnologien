@@ -1,5 +1,45 @@
 <?php
     require("start.php");
+    $error= [];
+    $errortest = true;
+
+    if(!empty($_POST)){
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+        $confirm_pw = $_POST['confirm_pw'];
+
+        if(strlen($username) < 3){
+            $error[] = "Der Nutzername ist zu kurz (mind. 3 Zeichen)";
+            $errortest = false;
+        }
+        if($service->userExists($username)){
+            $error[] = "Der Nutzername existiert bereits. Bitte anderen wählen";
+            $errortest = false;
+        }
+        if(strlen($password) < 1){
+            $error[] = "Kein Passwort eingegeben";
+            $errortest = false;
+        }
+        if(strlen($password) < 8){
+            $error[] = "Das Passwort benötigt mindestens 8 Zeichen";
+            $errortest = false;
+        }
+        if($password != $confirm_pw){
+            $error[] = "Passwörter stimmen nicht überein";
+            $errortest = false;
+        }
+
+        if($errortest){
+            if($service->register($username, $password)){
+                $_SESSION["user"] = $username;
+                header("Location: friends.php");
+                exit;
+            } else{
+                $error[] = "Registrierung fehlgeschlagen";
+            }
+        }
+
+    }
 ?>
 
 <!DOCTYPE html>
@@ -17,7 +57,7 @@
 
         <h1 class="toCenter">Register Yourself</h1>
 
-        <form id="registerform" action="./friends.html" method="get" class="toCenter" onsubmit="return checkRegister();">
+        <form id="registerform" action="register.php" method="post" class="toCenter">
             <!-- 🟡 Future Adjustment -->
             <fieldset>
                 <legend>Register</legend>
@@ -41,11 +81,16 @@
             <!-- Buttons als Gruppe (für Responsive Styling) -->
             <div class="authFormButtons">
                 <!-- Cancel Button -->
-                <a href="./login.html"><button type="button">Cancel</button></a>
+                <a href="./login.php"><button type="button">Cancel</button></a>
 
                 <!-- Create Account Button -->
                 <button type="submit">Create Account</button>
             </div>
+            <?php
+                foreach($error as $err){
+                    echo "<p style='color:red'><strong>$err</strong></p>";
+                }
+            ?>
         </form>
     </main>
     <script src="../jsFiles/backend.js"></script>

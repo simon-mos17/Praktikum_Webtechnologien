@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState == 4) {
+          if (xmlhttp.status == 200) {
+            console.log(xmlhttp.responseText);
+            let data = JSON.parse(xmlhttp.responseText);
+            console.log(data);
+          } else {
+            console.error(
+              "Fehler (" + xmlhttp.status + "): " + xmlhttp.responseText
+            );
+          }
+        }
+      };
+      xmlhttp.open(
+        "GET",
+        "https://online-lectures-cs.thi.de/chat/test.json",
+        true
+      );
+      xmlhttp.send();
+    </script>
+  </body>
+</html>

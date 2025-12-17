@@ -255,7 +255,7 @@ function handleLogin(formElement) {
             console.log("Login erfolgreich als:", username);
 
             // Weiter zur Friends-Seite
-            window.location.href = "./friends.html";
+            window.location.href = "friends.php";
           } else {
             alert("Login-Antwort enthält kein Token.");
             console.error("Login-Antwort ohne Token:", data);
@@ -390,7 +390,7 @@ function readFriendsFromDom() {
   // Falls es diese UL nicht gibt (z.B. auf einer anderen Seite) -> abbrechen
   if (!listElement) {
     console.warn(
-      "Friends-UL #friendsList nicht gefunden – vermutlich nicht auf friends.html?"
+      "Friends-UL #friendsList nicht gefunden – vermutlich nicht auf friends.php?"
     );
     currentFriends = [];
     return;
@@ -622,41 +622,6 @@ function handleAddFriend() {
   xhr.send(jsonString);
 }
 
-// ===============================================
-// Initialisierung für die Friends-Seite
-// Diese Funktion wird beim Laden der Seite aufgerufen.
-// ===============================================
-document.addEventListener("DOMContentLoaded", function () {
-  // Nur auf friends.html ausführen. Wartet, bis das HTML geladen ist.
-  const friendForm = document.querySelector(".friendAddForm");
-  if (!friendForm) {
-    return; // wir sind nicht auf der Friends-Seite
-  }
-
-  console.log("Friends-Seite erkannt. Initialisiere b1-Logik.");
-
-  // 1) Aktuelle Freunde aus der HTML-Liste auslesen
-  readFriendsFromDom();
-
-  // 2) Alle Nutzer vom Backend laden
-  loadAllUsers();
-
-  // 3) Events für Input und Button setzen
-  const input = document.getElementById("friend-request-name");
-  const addButton = document.getElementById("friend-add-button");
-
-  if (input) {
-    // Bei jeder Eingabe Vorschläge neu filtern
-    input.addEventListener("input", function () {
-      updateFriendOptions(input.value);
-    });
-  }
-
-  if (addButton) {
-    addButton.addEventListener("click", handleAddFriend);
-  }
-});
-
 // =================================================
 // Teilaufgabe b2 – Freundesliste & Requests aus Backend laden
 // =================================================
@@ -718,7 +683,7 @@ function renderFriendsAndRequests(friendsData) {
     a.textContent = friend.username;
     a.setAttribute(
       "href",
-      "./chat.html?friend=" + encodeURIComponent(friend.username)
+      "./chat.php?friend=" + encodeURIComponent(friend.username)
     );
 
     li.appendChild(a);
@@ -758,11 +723,15 @@ function renderFriendsAndRequests(friendsData) {
     const acceptBtn = document.createElement("button");
     acceptBtn.type = "button";
     acceptBtn.textContent = "Accept";
+    acceptBtn.dataset.action = "accept-friend";
+    acceptBtn.dataset.username = friend.username;
 
     const rejectBtn = document.createElement("button");
     rejectBtn.type = "button";
     rejectBtn.textContent = "Reject";
     rejectBtn.classList.add("danger");
+    rejectBtn.dataset.action = "reject-friend";
+    rejectBtn.dataset.username = friend.username;
 
     li.appendChild(acceptBtn);
     li.appendChild(rejectBtn);
@@ -775,6 +744,44 @@ function renderFriendsAndRequests(friendsData) {
     requested: requestedFriends,
   });
 }
+
+// ===========================================
+// Accept / Reject Friend Requests (Teil g)
+// ===========================================
+document.addEventListener("click", function (event) {
+  const btn = event.target;
+
+  if (!btn.dataset.action) return;
+
+  // akzeptieren oder ablehnen?
+  const action = btn.dataset.action;
+  const username = btn.dataset.username;
+
+  console.log("Friend request", action, username);
+
+  const xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 204) {
+        console.log("Request erfolgreich:", action, username);
+        loadFriends();
+      } else {
+        console.error("Fehler bei Friend-Action:", xhr.status);
+      }
+    }
+  };
+
+  // an friends.php senden (keine neue Datei!)
+  xhr.open("POST", "friends.php", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  xhr.send(
+    "action=" +
+      encodeURIComponent(action) +
+      "&username=" +
+      encodeURIComponent(username)
+  );
+});
 
 // Holt die Freundesliste vom Backend und ruft renderFriendsAndRequests() auf.
 function loadFriends() {
@@ -799,12 +806,11 @@ function loadFriends() {
     }
   };
 
-  const url = window.backendUrl + "/friend";
+  const url = "ajax_load_friends.php";
   console.log("b2: Lade Freundesliste von:", url);
 
   xhr.open("GET", url, true);
   // wieder mit Token des aktuellen Users
-  xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
   xhr.send();
 }
 
@@ -868,53 +874,41 @@ function getChatpartner() {
 // messageArray: Array von Objekten mit { from, to, msg, time, ... }
 function renderMessages(messageArray) {
   const chatSection = document.getElementById("chatVerlauf");
-
-  // Sicherheitscheck: nur auf chat.html existiert #chatVerlauf
   if (!chatSection) return;
-
-  // Liste komplett leeren, bevor neue Nachrichten eingetragen werden
   chatSection.innerHTML = "";
 
-  // Falls der Server keine Liste liefert: abbrechen
-  if (!Array.isArray(messageArray)) {
-    console.error("Unerwartetes Nachrichtenformat:", messageArray);
-    return;
-  }
+  if (!Array.isArray(messageArray)) return;
 
-  // Jede Nachricht einzeln ins DOM schreiben
   messageArray.forEach(function (msgObj) {
     if (
       !msgObj ||
       typeof msgObj.msg !== "string" ||
       typeof msgObj.from !== "string"
-    ) {
-      return; // Falls etwas kaputt ist, Nachricht überspringen
-    }
+    )
+      return;
 
-    // Ein einzelnes <p> für jede Nachricht
     const p = document.createElement("p");
 
-    // Textspan mit "Absender: Nachricht"
     const textSpan = document.createElement("span");
     textSpan.className = "msg";
-    textSpan.textContent = msgObj.from + ": " + msgObj.msg;
 
-    // Zeitstempel / Nummer der Nachricht
-    const timeSpan = document.createElement("span");
-    timeSpan.className = "timeBadge";
-
-    if (typeof msgObj.time === "number") {
-      const padded = String(msgObj.time).padStart(2, "0");
-      timeSpan.textContent = padded;
+    if (window.chatLayout === "separated") {
+      // Username separat
+      textSpan.innerHTML =
+        "<strong>" + msgObj.from + "</strong><br>" + msgObj.msg;
     } else {
-      timeSpan.textContent = "";
+      // Username + Message einzeilig
+      textSpan.textContent = msgObj.from + ": " + msgObj.msg;
     }
 
-    // Zusammenbauen
+    const timeSpan = document.createElement("span");
+    timeSpan.className = "timeBadge";
+    if (typeof msgObj.time === "number") {
+      timeSpan.textContent = String(msgObj.time).padStart(2, "0");
+    }
+
     p.appendChild(textSpan);
     p.appendChild(timeSpan);
-
-    // p ins DOM
     chatSection.appendChild(p);
   });
 }
@@ -933,8 +927,8 @@ function loadMessages() {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
         try {
-          const data = JSON.parse(xhr.responseText); // JSON → JS-Objekt
-          renderMessages(data); // ins DOM zeichnen
+          const data = JSON.parse(xhr.responseText);
+          renderMessages(data);
         } catch (e) {
           console.error("Fehler beim Parsen:", e);
         }
@@ -944,25 +938,23 @@ function loadMessages() {
     }
   };
 
-  const url = window.backendUrl + "/message/" + encodeURIComponent(friendName);
-  console.log("Teilaufgabe c – Lade Nachrichten von:", url);
+  const url = "ajax_load_messages.php?to=" + encodeURIComponent(friendName);
+  console.log("Lade Nachrichten von:", url);
 
   xhr.open("GET", url, true);
-  xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
   xhr.send();
 }
 
 // Holt Text aus #message und sendet ihn über POST /message
 function sendMessage() {
   const input = document.getElementById("message");
-  if (!input) return;
+  const text = input.value.trim();
 
-  const text = input.value.trim(); // Inhalt ohne Leerzeichen
   if (text.length === 0) return; // leere Nachrichten ignorieren
 
   const friendName = getChatpartner();
   if (!friendName) {
-    alert("Fehler: Kein Chatpartner gefunden.");
+    alert("Kein Chatpartner angegeben.");
     return;
   }
 
@@ -971,9 +963,9 @@ function sendMessage() {
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 204) {
-        console.log("Nachricht gesendet.");
-        input.value = ""; // Eingabefeld leeren
-        loadMessages(); // sofort neu laden
+        console.log("Nachricht erfolgreich gesendet.");
+        input.value = ""; // Textfeld leeren
+        loadMessages(); // Chat sofort neu laden
       } else {
         console.error("Fehler beim Senden:", xhr.status);
         alert("Nachricht konnte nicht gesendet werden.");
@@ -981,19 +973,15 @@ function sendMessage() {
     }
   };
 
-  const url = window.backendUrl + "/message";
-  console.log("Teilaufgabe c – Sende Nachricht:", text);
+  xhr.open("POST", "ajax_send_message.php", true);
+  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 
-  xhr.open("POST", url, true);
-  xhr.setRequestHeader("Content-type", "application/json");
-  xhr.setRequestHeader("Authorization", "Bearer " + window.currentToken);
-
-  const body = JSON.stringify({
-    to: friendName,
-    message: text,
-  });
-
-  xhr.send(body);
+  xhr.send(
+    JSON.stringify({
+      msg: text, // <-- WICHTIG!
+      to: friendName,
+    })
+  );
 }
 
 // Initialisierung NUR auf der chat.html
@@ -1045,7 +1033,7 @@ function clearCurrentUser() {
 // Logout-Seite erkennen und Userdaten löschen
 document.addEventListener("DOMContentLoaded", function () {
   // Prüfen, ob wir auf logout.html sind
-  if (window.location.pathname.includes("logout.html")) {
+  if (window.location.pathname.includes("logout.php")) {
     console.log("Logout-Seite erkannt. Lösche aktuellen User.");
     clearCurrentUser();
   }

@@ -3,18 +3,18 @@
    ========================================= */
 
 body {
-  margin: 0;                               /* Standardrand entfernen */
+  margin: 0; /* Standardrand entfernen */
   color: black;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 16px;                         /* Bezug für em */
-  line-height: 1.2;                        /* etwas mehr Zeilenabstand */
+  font-size: 16px; /* Bezug für em */
+  line-height: 1.2; /* etwas mehr Zeilenabstand */
   background-color: rgb(240, 240, 240);
 }
 
 /* Haupt-Container (zentriert, max. 900px Breite) */
 .app {
   max-width: 900px;
-  margin: 2em auto;                        /* horizontale Zentrierung */
+  margin: 2em auto; /* horizontale Zentrierung */
 }
 
 /* =========================================
@@ -36,7 +36,10 @@ h2 {
 }
 
 /* Paragrafen und Bereiche */
-p, section, ul, ol {
+p,
+section,
+ul,
+ol {
   margin: 1.2em 0;
 }
 
@@ -66,7 +69,9 @@ a.danger:focus {
 }
 
 /* Zentrierte Texte für Login/Register/Logout */
-.toCenter { text-align: center; }
+.toCenter {
+  text-align: center;
+}
 
 /* ========================
    === Bilder & Icons =====
@@ -77,11 +82,13 @@ a.danger:focus {
 .app > img[alt*="Register"],
 .app > img[alt*="Logged Out"] {
   display: block;
-  margin: 1em auto 12px;                   /* automatische Zentrierung des Blocks */
+  margin: 1em auto 12px; /* automatische Zentrierung des Blocks */
 }
 
 /* runde Icons */
-.roundIcons { border-radius: 50%; }
+.roundIcons {
+  border-radius: 50%;
+}
 
 /* ===========================
    === Formulare (global) ====
@@ -92,21 +99,23 @@ form fieldset {
   background-color: white;
   border: 1px dashed #c7c7c7;
   padding: 1em;
-  margin: 1em auto;                        /* in .app zentriert */
+  margin: 1em auto; /* in .app zentriert */
   width: 60%;
-  max-width: 500px;                        /* nie breiter als 500px */
-  border-radius: .5em;
+  max-width: 500px; /* nie breiter als 500px */
+  border-radius: 0.5em;
   vertical-align: middle;
   align-items: center;
 }
 
-form legend { text-align: left; }
+form legend {
+  text-align: left;
+}
 
 /* Labels neben Inputs in einer Zeile */
 form label {
   display: inline-block;
-  width: 5em;                              /* Abstand zw. Label & Input */
-  margin-bottom: .7em;
+  width: 5em; /* Abstand zw. Label & Input */
+  margin-bottom: 0.7em;
 }
 
 /* spezielles, längeres Confirm-Label */
@@ -119,18 +128,18 @@ label[for="confirm_pw"] {
 form input[type="text"],
 form input[type="password"] {
   width: 12em;
-  max-width: 100%;                         /* nie breiter als Eltern-Container */
+  max-width: 100%; /* nie breiter als Eltern-Container */
 }
 
 /* Buttons (Basis) */
 form button,
 section button {
-  padding: .7em 2em;
+  padding: 0.7em 2em;
   border: none;
-  cursor: pointer;                         /* Hand anzeigen */
+  cursor: pointer; /* Hand anzeigen */
   font-weight: bold;
   font-size: 1em;
-  border-radius: .3em;
+  border-radius: 0.3em;
 }
 
 /* graue Buttons (z.B. Cancel, Section-Buttons) */
@@ -151,7 +160,7 @@ form button:hover,
 form button:focus,
 section button:hover,
 section button:focus {
-  filter: brightness(1.15);                /* Buttons aufhellen */
+  filter: brightness(1.15); /* Buttons aufhellen */
   outline: none;
 }
 
@@ -185,7 +194,7 @@ section button:focus {
 }
 
 #friendsList li {
-  display: flex;                           /* Name links, Badge rechts */
+  display: flex; /* Name links, Badge rechts */
   justify-content: space-between;
   align-items: center;
   padding: 10px;
@@ -197,7 +206,7 @@ section button:focus {
   font-weight: bold;
   padding: 2px 8px;
   border-radius: 4px;
-  font-size: .9em;
+  font-size: 0.9em;
 }
 
 /* =========================================
@@ -206,8 +215,8 @@ section button:focus {
 
 /* DESKTOP: Grid -> Input füllt alle freie Breite, Button rechts */
 .friendAddForm {
-  display: grid;                           /* GRID-Layout */
-  grid-template-columns: 1fr auto;         /* Input | Button */
+  display: grid; /* GRID-Layout */
+  grid-template-columns: 1fr auto; /* Input | Button */
   column-gap: 30px;
   align-items: center;
   margin-top: 1em;
@@ -217,9 +226,9 @@ section button:focus {
 .friendAddForm input[type="text"] {
   width: 100%;
   min-width: 0;
-  padding: .7em .8em;
+  padding: 0.7em 0.8em;
   border: 1px solid #c7c7c7;
-  border-radius: .3em;
+  border-radius: 0.3em;
   font-size: 1em;
   box-sizing: border-box;
 }
@@ -227,20 +236,20 @@ section button:focus {
 /* Chat-Input mit ähnlichem Stil (eigenes Flex/Grid in .chatForm) */
 .chatForm input[type="text"] {
   flex: 1 1 auto;
-  padding: .7em .8em;
+  padding: 0.7em 0.8em;
   border: 1px solid #c7c7c7;
-  border-radius: .3em;
+  border-radius: 0.3em;
   font-size: 1em;
   box-sizing: border-box;
 }
 
-.friendAddForm button[type="button"] {
+.friendAddForm button[type="submit"] {
   background-color: grey;
   color: white;
   border: none;
   font-weight: bold;
-  padding: .7em 2em;
-  border-radius: .3em;
+  padding: 0.7em 2em;
+  border-radius: 0.3em;
   cursor: pointer;
 }
 
@@ -295,7 +304,7 @@ section button:focus {
 
 /* Chat-Verlauf: weniger vertikale Lücken */
 #chatVerlauf > p {
-  margin: .3em 0;
+  margin: 0.3em 0;
 }
 
 /* Nachrichtenzeilen: Text links, Zeit rechts */
@@ -306,13 +315,13 @@ section button:focus {
   margin: 8px 0;
   padding: 4px 0;
 }
-.msg       { 
-  flex: 1; 
-  padding-left: 2px; 
+.msg {
+  flex: 1;
+  padding-left: 2px;
 }
 
-.timeBadge { 
-  color: #c4c4c4; 
+.timeBadge {
+  color: #c4c4c4;
   padding-right: 2px;
 }
 
@@ -329,10 +338,10 @@ section button:focus {
   color: white;
   border: none;
   font-weight: bold;
-  padding: .7em 2em;
-  border-radius: .3em;
+  padding: 0.7em 2em;
+  border-radius: 0.3em;
   cursor: pointer;
-  margin-left: .4em;
+  margin-left: 0.4em;
 }
 
 /* ==========================================
@@ -346,7 +355,7 @@ section button:focus {
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;                     /* horizontale Zentrierung */
+  align-items: center; /* horizontale Zentrierung */
 }
 
 /* Fieldsets in Settings: immer volle Breite, kompakter Abstand */
@@ -357,13 +366,13 @@ section button:focus {
   border: 1px dashed #c7c7c7;
   border-radius: 6px;
   padding: 20px;
-  margin: .5em 0;                          /* enger zusammenrücken */
+  margin: 0.5em 0; /* enger zusammenrücken */
   text-align: left;
   box-sizing: border-box;
 }
 
 /* Base Data – Labels rechtsbündig, Inputs daneben */
-.profileForm fieldset:first-of-type { 
+.profileForm fieldset:first-of-type {
   text-align: center;
 }
 
@@ -408,7 +417,7 @@ section button:focus {
   margin: 0;
   line-height: 1.2;
 }
-.profileForm fieldset:last-of-type input[type="radio"] { 
+.profileForm fieldset:last-of-type input[type="radio"] {
   margin: 0;
 }
 
@@ -420,8 +429,8 @@ section button:focus {
   margin-top: 20px;
 }
 .profileFormButtons button,
-.profileFormButtons a { 
-  margin: 0; 
+.profileFormButtons a {
+  margin: 0;
 }
 
 /* ====================================
@@ -438,7 +447,7 @@ section button:focus {
 .profileAvatar {
   width: 360px;
   height: 360px;
-  object-fit: cover;                        /* quadratisch ohne Verzerrung */
+  object-fit: cover; /* quadratisch ohne Verzerrung */
   display: block;
 }
 
@@ -452,10 +461,12 @@ section button:focus {
 
 .profileCard p {
   margin: 0 0 16px 0;
-  text-align: justify;                      /* optisch wie Vorlage */
+  text-align: justify; /* optisch wie Vorlage */
 }
 
-.profileFacts { margin: 0; }
+.profileFacts {
+  margin: 0;
+}
 .profileFacts dt {
   font-weight: bold;
   margin-top: 10px;
@@ -482,7 +493,6 @@ section button:focus {
    (Handy / Tablet)
    ========================================= */
 @media (max-width: 900px) {
-
   body {
     padding: 0.5rem;
   }
@@ -581,13 +591,13 @@ section button:focus {
 
   /* Friend-Add-Form untereinander */
   .friendAddForm {
-    display: flex;                 /* Grid wird hier überschrieben */
+    display: flex; /* Grid wird hier überschrieben */
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
   }
 
-  .friendAddForm button[type="button"],
+  .friendAddForm button[type="submit"],
   .chatForm button[type="submit"] {
     margin-left: 0;
     width: 100%;
@@ -639,7 +649,6 @@ section button:focus {
    ========================================= */
 
 @media (max-width: 480px) {
-
   /* Requests: Text oben, darunter große Buttons (untereinander) */
   .requestsList li,
   .app section ol li {

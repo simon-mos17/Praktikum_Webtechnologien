@@ -47,13 +47,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../cssFiles/styles.css">
+    <link rel="stylesheet" href="cssFiles/styles.css">
 
     <title>Register</title>
 </head>
 <body>
     <main class="app">
-        <img src="../images/user.png" alt="Register Icon" width="100" height="100" class="roundIcons">
+        <img src="images/user.png" alt="Register Icon" width="100" height="100" class="roundIcons">
 
         <h1 class="toCenter">Register Yourself</h1>
 

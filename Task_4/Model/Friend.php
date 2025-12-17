@@ -5,6 +5,7 @@ class Friend implements JsonSerializable {
     private $username;
     private $status;
 
+    //Konstruktor
     public function __construct($username = null, $status = null){
         $this->username = $username;
         $this->status = $status;
@@ -18,6 +19,7 @@ class Friend implements JsonSerializable {
         return $friend;
     }
 
+    //Getter_Setter
     public function getUsername(){
         return $this->username;
     }
@@ -30,6 +32,7 @@ class Friend implements JsonSerializable {
         $this->status = $status;
     }
 
+    //Functions
     public function jsonSerialize(): mixed {
     return get_object_vars($this);
     }

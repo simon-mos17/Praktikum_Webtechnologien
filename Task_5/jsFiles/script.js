@@ -719,36 +719,17 @@ function renderFriendsAndRequests(friendsData) {
   // ===== Requests-Liste (requested) =====
   requestedFriends.forEach(function (friend) {
     const li = document.createElement("li");
-    li.classList.add(
-      "list-group-item",
-      "d-flex",
-      "justify-content-between",
-      "align-items-center"
-    );
+    li.classList.add("list-group-item", "list-group-item-action");
 
-    // Text "Friend request from <Name>"
-    const textLink = document.createElement("a");
-    textLink.innerHTML =
+    li.innerHTML =
       "Friend request from <strong>" + friend.username + "</strong>";
-    li.appendChild(textLink);
 
-    // Buttons: Accept / Reject (Funktionalität wäre Teil einer anderen Aufgabe)
-    const acceptBtn = document.createElement("button");
-    acceptBtn.type = "button";
-    acceptBtn.textContent = "Accept";
-    acceptBtn.dataset.action = "accept-friend";
-    acceptBtn.classList.add("btn", "btn-primary", "btn-sm", "me-2");
-    acceptBtn.dataset.username = friend.username;
+    li.style.cursor = "pointer";
 
-    const rejectBtn = document.createElement("button");
-    rejectBtn.type = "button";
-    rejectBtn.textContent = "Reject";
-    rejectBtn.classList.add("btn", "btn-secondary", "btn-sm");
-    rejectBtn.dataset.action = "reject-friend";
-    rejectBtn.dataset.username = friend.username;
-
-    li.appendChild(acceptBtn);
-    li.appendChild(rejectBtn);
+    // 👉 Klick auf Anfrage öffnet Modal
+    li.addEventListener("click", function () {
+      openFriendRequestModal(friend.username);
+    });
 
     requestsListElement.appendChild(li);
   });
@@ -758,44 +739,26 @@ function renderFriendsAndRequests(friendsData) {
     requested: requestedFriends,
   });
 }
+function closeFriendRequestModal() {
+  const modalEl = document.getElementById("friendRequestModal");
+  const modal = bootstrap.Modal.getInstance(modalEl);
+  if (modal) {
+    modal.hide();
+  }
+}
 
-// ===========================================
-// Accept / Reject Friend Requests (Teil g)
-// ===========================================
-document.addEventListener("click", function (event) {
-  const btn = event.target;
+function openFriendRequestModal(username) {
+  document.getElementById("friendRequestText").textContent =
+    "Accept friend request from " + username + "?";
 
-  if (!btn.dataset.action) return;
+  document.getElementById("accept-username").value = username;
+  document.getElementById("reject-username").value = username;
 
-  // akzeptieren oder ablehnen?
-  const action = btn.dataset.action;
-  const username = btn.dataset.username;
-
-  console.log("Friend request", action, username);
-
-  const xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 204) {
-        console.log("Request erfolgreich:", action, username);
-        loadFriends();
-      } else {
-        console.error("Fehler bei Friend-Action:", xhr.status);
-      }
-    }
-  };
-
-  // an friends.php senden (keine neue Datei!)
-  xhr.open("POST", "friends.php", true);
-  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-  xhr.send(
-    "action=" +
-      encodeURIComponent(action) +
-      "&username=" +
-      encodeURIComponent(username)
+  const modal = new bootstrap.Modal(
+    document.getElementById("friendRequestModal")
   );
-});
+  modal.show();
+}
 
 // Holt die Freundesliste vom Backend und ruft renderFriendsAndRequests() auf.
 function loadFriends() {
@@ -902,6 +865,7 @@ function renderMessages(messageArray) {
       return;
 
     const p = document.createElement("p");
+    p.classList.add("d-flex", "justify-content-between", "align-items-center");
 
     const textSpan = document.createElement("span");
     textSpan.className = "msg";
@@ -917,8 +881,17 @@ function renderMessages(messageArray) {
 
     const timeSpan = document.createElement("span");
     timeSpan.className = "timeBadge";
+
     if (typeof msgObj.time === "number") {
-      timeSpan.textContent = String(msgObj.time).padStart(2, "0");
+      // Backend liefert Zeit als Timestamp (Millisekunden)
+      const date = new Date(msgObj.time);
+
+      // Uhrzeit formatieren wie in der Musterlösung (HH:MM:SS)
+      timeSpan.textContent = date.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
     }
 
     p.appendChild(textSpan);

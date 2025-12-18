@@ -119,6 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["friendname"])) {
     <link
   href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
   rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </head>
 <body class="bg-light">
@@ -211,6 +212,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["friendname"])) {
     </main>
   </div>
 
+<!-- Friend Request Modal -->
+<div class="modal fade" id="friendRequestModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Friend request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p id="friendRequestText"></p>
+      </div>
+
+      <div class="modal-footer">
+        <form method="post" class="d-inline">
+          <input type="hidden" name="username" id="reject-username">
+          <input type="hidden" name="action" value="reject-friend">
+          <button type="submit"
+        class="btn btn-secondary"
+        onclick="closeFriendRequestModal()">
+  Dismiss
+</button>
+
+        </form>
+
+        <form method="post" class="d-inline">
+          <input type="hidden" name="username" id="accept-username">
+          <input type="hidden" name="action" value="accept-friend">
+          <button type="submit"
+        class="btn btn-primary"
+        onclick="closeFriendRequestModal()">
+  Accept
+</button>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 </body>
     <script src="jsFiles/backend.js"></script>
